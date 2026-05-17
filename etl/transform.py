@@ -1,3 +1,13 @@
+def _to_float_or_none(value):
+    if value is None or value == "":
+        return None
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def transform_orders(raw_data):
     transformed_data = []
 
@@ -12,7 +22,9 @@ def transform_orders(raw_data):
                 "order_number": order["order_number"],
                 "order_dow": order["order_dow"],
                 "order_hour_of_day": order["order_hour_of_day"],
-                "days_since_prior_order": order["days_since_prior_order"],
+                "days_since_prior_order": _to_float_or_none(
+                    order.get("days_since_prior_order")
+                ),
                 "eval_set": order["eval_set"],
 
                 "product_id": product["product_id"],

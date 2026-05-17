@@ -1,5 +1,7 @@
 import requests
+
 from transform import transform_orders
+from load import load_to_clickhouse
 
 API_URL = "http://96.9.212.102:8000/orders"
 
@@ -16,14 +18,11 @@ def extract_orders():
 
 
 if __name__ == "__main__":
-    data = extract_orders()
 
-    print("Success mengambil data")
-    print(f"Total Orders: {data['total_orders']}")
+    raw_data = extract_orders()
 
-    transformed = transform_orders(data)
+    transformed_data = transform_orders(raw_data)
 
-    print(f"\nTotal transformed rows: {len(transformed)}")
+    load_to_clickhouse(transformed_data)
 
-    print("\nContoh transformed row:\n")
-    print(transformed[0])
+    print("\nETL pipeline berhasil dijalankan")

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS orders (
     order_number Int32,
     order_dow Int32,
     order_hour_of_day Int32,
-    days_since_prior_order Float32,
+    days_since_prior_order Nullable(Float32),
     eval_set String,
 
     product_id Int32,
