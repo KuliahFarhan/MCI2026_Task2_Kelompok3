@@ -4,7 +4,7 @@ import clickhouse_connect
 def load_to_clickhouse(data):
 
     client = clickhouse_connect.get_client(
-        host='localhost',
+        host='clickhouse',
         port=8123,
         username='admin',
         password='admin123',
