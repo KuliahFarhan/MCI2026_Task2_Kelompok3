@@ -1,19 +1,29 @@
 import requests
-import json
+from transform import transform_orders
 
 API_URL = "http://96.9.212.102:8000/orders"
 
-response = requests.get(API_URL)
 
-if response.status_code == 200:
-    data = response.json()
+def extract_orders():
+    response = requests.get(API_URL)
+
+    if response.status_code == 200:
+        return response.json()
+
+    raise Exception(
+        f"Gagal mengambil data. Status code: {response.status_code}"
+    )
+
+
+if __name__ == "__main__":
+    data = extract_orders()
 
     print("Success mengambil data")
+    print(f"Total Orders: {data['total_orders']}")
 
-    print(f"\nTotal Orders: {data['total_orders']}")
+    transformed = transform_orders(data)
 
-    print("\nContoh 1 Order:\n")
-    print(json.dumps(data['orders'][0], indent=4))
+    print(f"\nTotal transformed rows: {len(transformed)}")
 
-else:
-    print(f"Gagal mengambil data. Status code: {response.status_code}")
+    print("\nContoh transformed row:\n")
+    print(transformed[0])
