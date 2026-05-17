@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-server
+
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+    environment:
+      CLICKHOUSE_DB: mci_orders
+
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+volumes:
+  clickhouse_data:
