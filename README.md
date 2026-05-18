@@ -567,11 +567,9 @@ Row 1: KPI Summary
 Row 2: Product Performance
 [Top 10 Most Ordered Products] [Top 10 Reordered Products]
 
-Row 3: Category Analysis
-[Orders by Department] [Average Basket Size by Department]
-
-Row 4: Time Behavior
-[Orders by Hour of a Day] [Orders by Day of Week]
+Row 3 & 4: Category Analysis and Time Behavior
+[Orders by Department] [Orders by Hour of a Day]  
+[Average Basket Size by Department][Orders by Day of Week]
 
 Row 5: Customer Behavior
 [Reordered vs First-Time Items] [Avg Days Since Prior Order]
