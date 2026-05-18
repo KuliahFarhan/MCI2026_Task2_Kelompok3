@@ -585,8 +585,10 @@ Variasi visualisasi yang digunakan:
 | Time Behavior | Bar / Line |
 | Customer Behavior | Donut / Number |
 
-![Metabase Dashboard](docs/images/metabase_dashboard.png)
-
+![Metabase Dashboard1](docs/images/metabase_dashboard1.png)
+![Metabase Dahbooard2](docs/images/metabase_dashboard2.png)
+![Metabase Dashboard3](docs/images/metabase_dashboard3.png)
+![Mebabase Dashboard4](docs/images/metabase_dashboard4.png)
 ---
 
 ## 12. Business Insight
