@@ -21,11 +21,11 @@ def run_etl():
 
 
 with DAG(
-    dag_id="orders_etl_pipeline",
-    start_date=datetime(2026, 1, 1),
-    schedule=None,
-    catchup=False,
-    tags=["mci"]
+   dag_id="orders_etl_pipeline",
+   start_date=datetime(2026, 1, 1),
+   schedule="*/5 * * * *",
+   catchup=False,
+   tags=["mci"]
 ) as dag:
 
     run_pipeline = PythonOperator(

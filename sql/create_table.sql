@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS mci_orders.orders (
     order_id Int32,
     user_id Int32,
     order_number Int32,

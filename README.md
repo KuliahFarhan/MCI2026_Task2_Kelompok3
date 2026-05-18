@@ -1,24 +1,18 @@
+# MCI2026 Task 2 - Kelompok 3
 
-# MCI2026_Task2_Kelompok 3
+## Pipeline Orchestration & Data Visualization with Airflow, ClickHouse, and Metabase
 
-## Overview
+Project ini merupakan implementasi pipeline data end-to-end yang mencakup proses orchestration, data warehouse, dan business intelligence dashboard. Data order diambil dari API, diproses menggunakan Python ETL, dijalankan melalui Apache Airflow, disimpan ke ClickHouse, lalu divisualisasikan menggunakan Metabase.
 
-Project ini merupakan implementasi sederhana Data Engineering Pipeline menggunakan:
-
-* Apache Airflow → orchestration pipeline
-* ClickHouse → data warehouse
-* Docker Compose → container orchestration
-* Python ETL → extract, transform, load
-* Metabase → visualisasi data
-
-Pipeline akan:
+Pipeline utama:
 
 ```text
-API Orders
-→ Extract
-→ Transform nested JSON
-→ Load ke ClickHouse
-→ Trigger via Airflow DAG
+Orders API
+→ Apache Airflow DAG
+→ Python Extract, Transform, Load
+→ ClickHouse Data Warehouse
+→ Metabase Questions
+→ Metabase Dashboard
 ```
 
 Dataset source:
@@ -29,7 +23,41 @@ http://96.9.212.102:8000/orders
 
 ---
 
-# Struktur Project
+## 1. Project Overview
+
+Project ini bertujuan untuk membangun pipeline data yang dapat mengambil data order dari API, mengubah data nested JSON menjadi bentuk tabular, menyimpan hasil transformasi ke ClickHouse, lalu menampilkannya dalam dashboard Metabase.
+
+Data dari API memiliki struktur nested, yaitu satu order dapat memiliki banyak produk di dalam array `products`. Pada proses transformasi, data tersebut diubah menjadi bentuk tabular dengan struktur:
+
+```text
+1 row = 1 product item dalam 1 order
+```
+
+Karena itu, analisis pada project ini dibagi menjadi beberapa level:
+
+| Level Analisis | Penjelasan |
+|---|---|
+| Order-level | Menghitung jumlah order unik, waktu order, dan hari order |
+| Item-level | Menghitung total item/produk yang muncul dalam order |
+| Product-level | Menganalisis produk paling sering dipesan dan produk yang sering di-reorder |
+| Department-level | Menganalisis kontribusi kategori/department |
+| Customer behavior | Menganalisis reorder behavior dan jarak pembelian sebelumnya |
+
+---
+
+## 2. Technologies Used
+
+| Technology | Function |
+|---|---|
+| Docker Compose | Menjalankan seluruh service dalam container |
+| Apache Airflow | Orchestration dan scheduling pipeline |
+| Python | Proses Extract, Transform, Load |
+| ClickHouse | Analytical database / data warehouse |
+| Metabase | Business intelligence dashboard dan data visualization |
+
+---
+
+## 3. Project Structure
 
 ```text
 MCI2026_Task2_Kelompok3/
@@ -44,89 +72,66 @@ MCI2026_Task2_Kelompok3/
 │
 ├── sql/
 │   ├── create_database.sql
-│   └── create_table.sql
+│   ├── create_table.sql
+│   └── metabase_queries.sql
 │
-├── requirements.txt
+├── docs/
+│   └── images/
+│       ├── airflow_dag_success.png
+│       ├── clickhouse_count.png
+│       ├── metabase_connection.png
+│       ├── metabase_question.png
+│       └── metabase_dashboard.png
+│
 ├── docker-compose.yml
+├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-# Technologies Used
+## 4. System Architecture
 
-| Technology     | Function                  |
-| -------------- | ------------------------- |
-| Python         | ETL scripting             |
-| Apache Airflow | Workflow orchestration    |
-| ClickHouse     | Analytical database       |
-| Docker Compose | Container management      |
-| Metabase       | Dashboard & visualization |
-
----
-
-# Requirements
-
-Sebelum menjalankan project pastikan sudah menginstall:
-
-* Docker Desktop
-* Git
-* Python 3.11+
-* VS Code (optional)
-
-Cek instalasi:
-
-```bash
-python --version
-docker --version
-git --version
-```
-
----
-
-# Quick Start (Recommended Order)
-
-Ikuti urutan berikut agar project dapat berjalan tanpa error dependency atau warehouse kosong.
+Arsitektur pipeline:
 
 ```text
-1. Clone repository
-2. Jalankan Docker services
-3. Install dependency Airflow
-4. Setup ClickHouse database & table
-5. Trigger DAG Airflow
-6. Verifikasi data masuk ke ClickHouse
-7. Jalankan Metabase
-8. Connect Metabase ke ClickHouse
-9. Build query & dashboard
+API Orders
+   ↓
+Airflow DAG
+   ↓
+Python ETL
+   ↓
+ClickHouse Table: mci_orders.orders
+   ↓
+Metabase Questions
+   ↓
+Metabase Dashboard
 ```
 
-Catatan penting:
+Service utama:
 
-Metabase tidak akan menampilkan data apabila DAG Airflow belum dijalankan.
+1. **Airflow**  
+   Digunakan untuk menjalankan dan menjadwalkan pipeline ETL.
 
-Karena alur project:
+2. **ClickHouse**  
+   Digunakan sebagai data warehouse untuk menyimpan data hasil transformasi.
 
-```text
-API → Airflow DAG → ClickHouse → Metabase
-```
-
-Jadi warehouse harus terisi terlebih dahulu sebelum visualisasi dibuat.
+3. **Metabase**  
+   Digunakan untuk membuat question, visualisasi, dan dashboard analitik.
 
 ---
 
-# Clone Repository
+## 5. Setup and Run Project
+
+### 5.1 Clone Repository
 
 ```bash
-git clone https://github.com/<username>/MCI2026_Task2_Kelompok3.git
+git clone https://github.com/KuliahFarhan/MCI2026_Task2_Kelompok3.git
 cd MCI2026_Task2_Kelompok3
 ```
 
----
-
-# Menjalankan Docker Services
-
-Jalankan seluruh service:
+### 5.2 Run Docker Compose
 
 ```bash
 docker compose up -d
@@ -138,7 +143,7 @@ Cek container:
 docker ps
 ```
 
-Container yang seharusnya aktif:
+Container yang seharusnya berjalan:
 
 ```text
 clickhouse-server
@@ -148,60 +153,28 @@ metabase
 
 ---
 
-# Install Dependency pada Airflow
+## 6. ClickHouse Data Warehouse
 
-Karena dependency ETL digunakan di dalam container Airflow, install package berikut:
+### 6.1 Database
 
-```bash
-docker exec -it airflow pip install clickhouse-connect requests
-```
-
----
-
-# Setup ClickHouse
-
-Masuk ke ClickHouse client:
-
-```bash
-docker exec -it clickhouse-server clickhouse-client --user admin --password admin123
-```
-
----
-
-# Membuat Database
-
-Jalankan:
+Database yang digunakan:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS mci_orders;
 ```
 
-Pilih database:
+### 6.2 Table Schema
+
+Tabel utama yang digunakan adalah `mci_orders.orders`.
 
 ```sql
-USE mci_orders;
-```
-
----
-
-# Membuat Table
-
-Jalankan isi file:
-
-```text
-sql/create_table.sql
-```
-
-Atau copy query berikut:
-
-```sql
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS mci_orders.orders (
     order_id Int32,
     user_id Int32,
     order_number Int32,
     order_dow Int32,
     order_hour_of_day Int32,
-    days_since_prior_order Float32,
+    days_since_prior_order Nullable(Float32),
     eval_set String,
 
     product_id Int32,
@@ -220,58 +193,47 @@ ENGINE = MergeTree()
 ORDER BY (order_id, product_id);
 ```
 
+Pemilihan `ORDER BY (order_id, product_id)` digunakan karena data berada pada level item produk dalam order. Satu `order_id` dapat memiliki banyak `product_id`, sehingga kombinasi ini membantu penyimpanan dan pembacaan data analitik berdasarkan order dan produk.
+
 ---
 
-# Menjalankan ETL Manual
+## 7. Airflow DAG
 
-Untuk testing ETL tanpa Airflow:
-
-```bash
-python etl/extract.py
-```
-
-Jika berhasil:
+DAG yang digunakan:
 
 ```text
-Berhasil insert ... rows ke ClickHouse
-ETL pipeline berhasil dijalankan
+orders_etl_pipeline
 ```
 
----
+Pipeline DAG menjalankan tiga proses utama:
 
-# Verifikasi Data di ClickHouse
-
-Masuk kembali ke ClickHouse:
-
-```bash
-docker exec -it clickhouse-server clickhouse-client --user admin --password admin123
+```text
+extract_orders()
+→ transform_orders()
+→ load_to_clickhouse()
 ```
 
-Gunakan database:
+### 7.1 Extract
 
-```sql
-USE mci_orders;
+Tahap extract mengambil data dari API orders.
+
+### 7.2 Transform
+
+Tahap transform mengubah nested JSON menjadi format tabular. Setiap produk dalam order akan menjadi satu baris data.
+
+### 7.3 Load
+
+Tahap load memasukkan data hasil transformasi ke ClickHouse pada tabel `mci_orders.orders`.
+
+Untuk menjaga data tidak terduplikasi akibat DAG berjalan lebih dari satu kali, proses load dapat melakukan refresh tabel sebelum insert data baru:
+
+```python
+client.command("TRUNCATE TABLE mci_orders.orders")
 ```
 
-Cek jumlah data:
+### 7.4 Airflow UI
 
-```sql
-SELECT COUNT(*) FROM orders;
-```
-
-Cek sample data:
-
-```sql
-SELECT *
-FROM orders
-LIMIT 5;
-```
-
----
-
-# Menjalankan Airflow
-
-Airflow UI tersedia di:
+Airflow UI dapat diakses melalui:
 
 ```text
 http://localhost:8081
@@ -284,178 +246,416 @@ Username: admin
 Password: admin123
 ```
 
----
-
-# Airflow DAG
-
-DAG yang digunakan:
-
-```text
-orders_etl_pipeline
-```
-
 Langkah menjalankan DAG:
 
-1. Aktifkan toggle DAG
-2. Klik tombol ▶
-3. Pilih Trigger DAG
+1. Buka Airflow UI.
+2. Cari DAG `orders_etl_pipeline`.
+3. Pastikan DAG dalam kondisi aktif.
+4. Klik **Trigger DAG**.
+5. Pastikan task berhasil dengan status **success**.
 
-Jika berhasil:
-
-* task berubah menjadi hijau
-* data otomatis masuk ke ClickHouse
+![Airflow DAG Success](docs/images/airflow_dag_success.png)
 
 ---
 
-# Menjalankan Metabase
+## 8. Data Validation in ClickHouse
 
-Metabase UI:
+Setelah DAG berhasil dijalankan, data divalidasi melalui ClickHouse.
+
+```bash
+docker exec -it clickhouse-server clickhouse-client \
+  --user admin \
+  --password admin123 \
+  --database mci_orders
+```
+
+Query validasi:
+
+```sql
+SELECT
+    COUNT(*) AS total_items,
+    COUNT(DISTINCT order_id) AS total_orders
+FROM orders;
+```
+
+Hasil validasi setelah pipeline berhasil dijalankan:
+
+```text
+total_items  = 959
+total_orders = 100
+```
+
+Interpretasi:
+
+| Metric | Meaning |
+|---|---|
+| Total Orders | Jumlah order unik |
+| Total Items | Jumlah seluruh produk dalam order |
+| Average Items per Order | Rata-rata jumlah produk dalam satu order |
+
+Karena data sudah di-flatten, `COUNT(*)` tidak sama dengan jumlah order. `COUNT(*)` merepresentasikan jumlah item, sedangkan jumlah order dihitung menggunakan `COUNT(DISTINCT order_id)`.
+
+![ClickHouse Count](docs/images/clickhouse_count.png)
+
+---
+
+## 9. Metabase Setup
+
+Metabase UI dapat diakses melalui:
 
 ```text
 http://localhost:3000
 ```
 
-Setup awal:
+Konfigurasi koneksi ClickHouse:
 
-1. Create admin account
-2. Add database
-3. Pilih ClickHouse
-
----
-
-# Konfigurasi ClickHouse di Metabase
-
-Gunakan konfigurasi berikut:
-
-| Field    | Value      |
-| -------- | ---------- |
-| Host     | clickhouse |
-| Port     | 8123       |
+| Field | Value |
+|---|---|
+| Database Type | ClickHouse |
+| Host | clickhouse |
+| Port | 8123 |
 | Database | mci_orders |
-| Username | admin      |
-| Password | admin123   |
+| Username | admin |
+| Password | admin123 |
+
+Catatan: host yang digunakan adalah `clickhouse`, bukan `localhost`, karena Metabase dan ClickHouse berjalan dalam Docker network yang sama.
+
+![Metabase Connection](docs/images/metabase_connection.png)
 
 ---
 
-# Contoh Query untuk Metabase
+## 10. Metabase Questions and Queries
 
-## Total Orders
+Query analitik yang digunakan pada Metabase juga disimpan pada file:
+
+```text
+sql/metabase_queries.sql
+```
+
+Seluruh query menggunakan full table name `mci_orders.orders` agar tidak terjadi error `UNKNOWN_TABLE` ketika dijalankan dari Metabase.
+
+---
+
+### 10.1 Total Orders
+
+Visualisasi: **Number**
 
 ```sql
 SELECT COUNT(DISTINCT order_id) AS total_orders
-FROM orders;
+FROM mci_orders.orders;
 ```
+
+Metrik ini menunjukkan jumlah order unik yang tersedia dalam dataset.
 
 ---
 
-## Top 10 Product
+### 10.2 Total Order Items
+
+Visualisasi: **Number**
+
+```sql
+SELECT COUNT(*) AS total_order_items
+FROM mci_orders.orders;
+```
+
+Metrik ini menunjukkan jumlah seluruh item produk dalam order. Karena tabel berada pada level item, nilai ini lebih besar daripada jumlah order.
+
+---
+
+### 10.3 Average Items per Order
+
+Visualisasi: **Number**
 
 ```sql
 SELECT
+    ROUND(COUNT(*) / COUNT(DISTINCT order_id), 2) AS avg_items_per_order
+FROM mci_orders.orders;
+```
+
+Metrik ini menunjukkan rata-rata jumlah item dalam setiap order.
+
+---
+
+### 10.4 Reorder Rate
+
+Visualisasi: **Number / Gauge**
+
+```sql
+SELECT
+    ROUND(100.0 * SUM(reordered) / COUNT(*), 2) AS reorder_rate_percent
+FROM mci_orders.orders;
+```
+
+Metrik ini menunjukkan persentase item yang merupakan pembelian ulang.
+
+---
+
+### 10.5 Top 10 Most Ordered Products
+
+Visualisasi: **Horizontal Bar Chart**
+
+```sql
+-- Top 10 Most Ordered Products
+SELECT
     product_name,
-    COUNT(*) AS total
-FROM orders
+    COUNT(*) AS total_ordered
+FROM mci_orders.orders
 GROUP BY product_name
-ORDER BY total DESC
+ORDER BY total_ordered DESC
 LIMIT 10;
 ```
 
+Visualisasi ini digunakan untuk melihat produk yang paling sering muncul dalam order.
+
 ---
 
-## Top Department
+### 10.6 Top 10 Reordered Products
+
+Visualisasi: **Horizontal Bar Chart / Table**
 
 ```sql
+-- Top 10 reordered
 SELECT
-    department,
-    COUNT(*) AS total
-FROM orders
-GROUP BY department
-ORDER BY total DESC;
+    product_name,
+    COUNT(*) AS reordered_count
+FROM mci_orders.orders
+WHERE reordered = 1
+GROUP BY product_name
+ORDER BY reordered_count DESC
+LIMIT 10;
 ```
 
+Visualisasi ini digunakan untuk melihat produk yang paling sering dibeli ulang.
+
 ---
 
-## Order Distribution by Hour
+### 10.7 Orders by Department
+
+Visualisasi: **Donut Chart / Pie Chart / Bar Chart**
 
 ```sql
+-- orders by departement
 SELECT
-    order_hour_of_day,
-    COUNT(*) AS total_orders
-FROM orders
-GROUP BY order_hour_of_day
+    department,
+    COUNT(*) AS total_items
+FROM mci_orders.orders
+GROUP BY department
+ORDER BY total_items DESC;
+```
+
+Visualisasi ini menunjukkan kontribusi setiap department terhadap total item dalam order.
+
+---
+
+### 10.8 Average Basket Size by Department
+
+Visualisasi: **Bar Chart**
+
+```sql
+-- average basket size
+SELECT
+    department,
+    ROUND(COUNT(*) / COUNT(DISTINCT order_id), 2) AS avg_items_per_order
+FROM mci_orders.orders
+GROUP BY department
+ORDER BY avg_items_per_order DESC;
+```
+
+Visualisasi ini menunjukkan rata-rata jumlah item per order berdasarkan department.
+
+---
+
+### 10.9 Orders by Hour of a Day
+
+Visualisasi: **Bar Chart / Line Chart**
+
+```sql
+-- order by hours of a day
+SELECT
+    concat(toString(order_hour_of_day), ':00') AS hour_label,
+    COUNT(DISTINCT order_id) AS total_orders
+FROM mci_orders.orders
+GROUP BY order_hour_of_day, hour_label
 ORDER BY order_hour_of_day;
 ```
 
----
-
-# Dashboard Recommendation
-
-Dashboard minimal yang direkomendasikan:
-
-1. Total Orders
-2. Top Products
-3. Top Departments
-4. Order Distribution by Hour
-5. Reordered vs Non-Reordered Products
+Visualisasi ini menunjukkan distribusi order berdasarkan jam dalam satu hari.
 
 ---
 
-# Common Errors
+### 10.10 Orders by Day of Week
 
-## Airflow DAG tidak muncul
+Visualisasi: **Vertical Bar Chart**
 
-Cek:
+```sql
+-- order by day a week
+SELECT
+    CASE order_dow
+        WHEN 0 THEN 'Sunday'
+        WHEN 1 THEN 'Monday'
+        WHEN 2 THEN 'Tuesday'
+        WHEN 3 THEN 'Wednesday'
+        WHEN 4 THEN 'Thursday'
+        WHEN 5 THEN 'Friday'
+        WHEN 6 THEN 'Saturday'
+    END AS day_name,
+    COUNT(DISTINCT order_id) AS total_orders
+FROM mci_orders.orders
+GROUP BY order_dow, day_name
+ORDER BY order_dow;
+```
+
+Visualisasi ini menunjukkan distribusi order berdasarkan hari dalam satu minggu.
+
+---
+
+### 10.11 Reordered vs First-Time Items
+
+Visualisasi: **Donut Chart / Pie Chart**
+
+```sql
+-- reorder vs first
+SELECT
+    CASE
+        WHEN reordered = 1 THEN 'Reordered'
+        ELSE 'First-Time Ordered'
+    END AS order_type,
+    COUNT(*) AS total_items
+FROM mci_orders.orders
+GROUP BY order_type
+ORDER BY total_items DESC;
+```
+
+Visualisasi ini membandingkan jumlah item yang merupakan pembelian ulang dan pembelian pertama.
+
+---
+
+### 10.12 Average Days Since Prior Order
+
+Visualisasi: **Number**
+
+```sql
+-- avg days since prior
+SELECT
+    ROUND(AVG(days_since_prior_order), 2) AS avg_days_since_prior_order
+FROM mci_orders.orders
+WHERE days_since_prior_order IS NOT NULL;
+```
+
+Metrik ini menunjukkan rata-rata jeda hari sejak order sebelumnya.
+
+![Metabase Question](docs/images/metabase_question.png)
+
+---
+
+## 11. Dashboard Design
+
+Dashboard yang dibuat bernama:
+
+```text
+Instacart Order Behavior Analytics
+```
+
+Dashboard disusun agar tidak hanya menampilkan data mentah, tetapi juga memberikan insight bisnis terkait perilaku order, performa produk, kontribusi department, waktu pembelian, dan reorder behavior.
+
+Layout dashboard:
+
+```text
+Row 1: KPI Summary
+[Total Orders] [Total Order Items] [Avg Items per Order] [Reorder Rate]
+
+Row 2: Product Performance
+[Top 10 Most Ordered Products] [Top 10 Reordered Products]
+
+Row 3: Category Analysis
+[Orders by Department] [Average Basket Size by Department]
+
+Row 4: Time Behavior
+[Orders by Hour of a Day] [Orders by Day of Week]
+
+Row 5: Customer Behavior
+[Reordered vs First-Time Items] [Avg Days Since Prior Order]
+```
+
+Variasi visualisasi yang digunakan:
+
+| Section | Visualization Type |
+|---|---|
+| KPI Summary | Number / Gauge |
+| Product Performance | Horizontal Bar / Table |
+| Category Analysis | Donut / Bar |
+| Time Behavior | Bar / Line |
+| Customer Behavior | Donut / Number |
+
+![Metabase Dashboard](docs/images/metabase_dashboard.png)
+
+---
+
+## 12. Business Insight
+
+Dashboard ini membantu menganalisis perilaku pembelian pelanggan berdasarkan data order dan produk. Karena data disimpan pada level item, analisis dapat dilakukan secara lebih detail, mulai dari jumlah order unik, jumlah item dalam order, produk paling sering dibeli, hingga pola reorder.
+
+Beberapa insight utama yang dapat diperoleh:
+
+1. **Basket Size Analysis**  
+   Average Items per Order menunjukkan rata-rata jumlah produk dalam satu order. Metrik ini berguna untuk memahami ukuran keranjang belanja pelanggan.
+
+2. **Product Performance**  
+   Produk dengan jumlah order tertinggi dapat menjadi prioritas dalam pengelolaan stok, promosi, dan rekomendasi produk.
+
+3. **Reorder Behavior**  
+   Reorder Rate menunjukkan seberapa besar proporsi item yang merupakan pembelian ulang. Produk dengan reorder tinggi dapat dimanfaatkan untuk loyalty program, bundling, atau rekomendasi personal.
+
+4. **Department Contribution**  
+   Analisis department membantu melihat kategori produk yang paling dominan dalam transaksi. Informasi ini dapat digunakan untuk menentukan prioritas inventory berdasarkan kategori.
+
+5. **Time-Based Behavior**  
+   Distribusi order berdasarkan jam dan hari dapat membantu menentukan waktu terbaik untuk promosi, push notification, atau campaign penjualan.
+
+---
+
+## 13. Common Issues
+
+### 13.1 Airflow DAG Paused
+
+Jika DAG tidak berjalan otomatis, pastikan DAG tidak dalam kondisi paused.
 
 ```bash
-docker logs airflow
+docker exec -it airflow bash -lc "airflow dags unpause orders_etl_pipeline"
 ```
 
----
+### 13.2 ModuleNotFoundError: clickhouse_connect
 
-## Connection refused ClickHouse
-
-Pastikan di:
-
-```python
-host='clickhouse'
-```
-
-bukan:
-
-```python
-host='localhost'
-```
-
----
-
-## ModuleNotFoundError pada Airflow
-
-Install dependency:
+Jika muncul error dependency pada Airflow, pastikan dependency sudah tersedia di container.
 
 ```bash
-docker exec -it airflow pip install clickhouse-connect requests
+docker exec -it airflow bash -lc "python -c 'import clickhouse_connect, requests; print(\"OK\")'"
+```
+
+### 13.3 ClickHouse Table Not Found in Metabase
+
+Gunakan full table name pada query:
+
+```sql
+FROM mci_orders.orders
+```
+
+bukan hanya:
+
+```sql
+FROM orders
+```
+
+### 13.4 Duplicate Data Because of Multiple DAG Runs
+
+Jika data bertambah setiap DAG berjalan, pastikan proses load melakukan refresh data sebelum insert.
+
+```python
+client.command("TRUNCATE TABLE mci_orders.orders")
 ```
 
 ---
 
-# Notes
-
-Project ini menggunakan:
-
-* SQLite metadata database Airflow
-* SequentialExecutor
-
-Karena project hanya digunakan untuk development dan tugas praktikum.
-
-Untuk production environment disarankan:
-
-* PostgreSQL metadata DB
-* CeleryExecutor / KubernetesExecutor
-* custom Docker image
-* environment variables terpisah
-
----
-
-# Contributors
+## 14. Contributors
 
 Kelompok 3 - MCI 2026

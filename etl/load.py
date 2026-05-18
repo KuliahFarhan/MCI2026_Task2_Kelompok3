@@ -36,9 +36,11 @@ def load_to_clickhouse(data):
             item["reordered"]
         ])
 
+    client.command("TRUNCATE TABLE mci_orders.orders")
+
     client.insert(
         'orders',
         rows
     )
-
+    
     print(f"Berhasil insert {len(rows)} rows ke ClickHouse")
