@@ -11,24 +11,41 @@ from transform import transform_orders
 from load import load_to_clickhouse
 
 
-def run_etl():
+def extract_task():
+    return extract_orders()
 
-    raw_data = extract_orders()
 
-    transformed_data = transform_orders(raw_data)
+def transform_task(**context):
+    raw_data = context["ti"].xcom_pull(task_ids="extract_orders")
+    return transform_orders(raw_data)
 
+
+def load_task(**context):
+    transformed_data = context["ti"].xcom_pull(task_ids="transform_orders")
     load_to_clickhouse(transformed_data)
 
 
 with DAG(
-   dag_id="orders_etl_pipeline",
-   start_date=datetime(2026, 1, 1),
-   schedule="*/5 * * * *",
-   catchup=False,
-   tags=["mci"]
+    dag_id="orders_etl_pipeline",
+    start_date=datetime(2026, 1, 1),
+    schedule="*/5 * * * *",
+    catchup=False,
+    tags=["mci"]
 ) as dag:
 
-    run_pipeline = PythonOperator(
-        task_id="run_etl_pipeline",
-        python_callable=run_etl
+    extract = PythonOperator(
+        task_id="extract_orders",
+        python_callable=extract_task
     )
+
+    transform = PythonOperator(
+        task_id="transform_orders",
+        python_callable=transform_task
+    )
+
+    load = PythonOperator(
+        task_id="load_to_clickhouse",
+        python_callable=load_task
+    )
+
+    extract >> transform >> load
