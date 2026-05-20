@@ -77,10 +77,6 @@ MCI2026_Task2_Kelompok3/
 │
 ├── docs/
 │   └── images/
-│       ├── airflow_dag_success.png
-│       ├── clickhouse_count.png
-│       ├── metabase_connection.png
-│       ├── metabase_question.png
 │       └── metabase_dashboard.png
 │
 ├── docker-compose.yml
