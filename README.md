@@ -208,9 +208,7 @@ orders_etl_pipeline
 Pipeline DAG menjalankan tiga proses utama:
 
 ```text
-extract_orders()
-→ transform_orders()
-→ load_to_clickhouse()
+extract_orders() → transform_orders() → load_to_clickhouse()
 ```
 
 ### 7.1 Extract
@@ -252,7 +250,7 @@ Username: admin
 Password: copy dari hasil passwd.sh
 ```
 
-Langkah menjalankan DAG:
+Langkah menjalankan DAG (jika manual):
 
 1. Buka Airflow UI.
 2. Cari DAG `orders_etl_pipeline`.
@@ -260,7 +258,9 @@ Langkah menjalankan DAG:
 4. Klik **Trigger DAG**.
 5. Pastikan task berhasil dengan status **success**.
 
-<img width="2516" height="1406" alt="image" src="https://github.com/user-attachments/assets/90022f46-a4f2-4074-a434-6c4af7920f15" />
+Namun dalam projek ini, DAG kami konfigurasi berjalan secara otomatis.
+
+<img width="2505" height="1396" alt="image" src="https://github.com/user-attachments/assets/22130df0-a791-490a-a241-a7b8392b8cdf" />
 
 ---
 
