@@ -569,13 +569,6 @@ Variasi visualisasi yang digunakan:
 | Time Behavior | Bar / Line |
 | Customer Behavior | Donut / Number |
 
-<img width="2523" height="1094" alt="image" src="https://github.com/user-attachments/assets/648dd9ca-2ae6-4c18-9b51-92fd7bbd086f" />
-
-<img width="2521" height="1416" alt="image" src="https://github.com/user-attachments/assets/b0b640af-9cd6-4351-961e-9bb358f5d3de" />
-
-<img width="2526" height="1414" alt="image" src="https://github.com/user-attachments/assets/9ac6041e-8bc9-4cbe-880f-c6e81fef3c40" />
-
-
 ![Metabase Dashboard1](docs/images/metabase_dashboard1.png)
 ![Metabase Dahbooard2](docs/images/metabase_dashboard2.png)
 ![Metabase Dashboard3](docs/images/metabase_dashboard3.png)
