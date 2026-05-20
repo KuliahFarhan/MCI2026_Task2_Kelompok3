@@ -236,14 +236,20 @@ client.command("TRUNCATE TABLE mci_orders.orders")
 Airflow UI dapat diakses melalui:
 
 ```text
-http://localhost:8081
+http://localhost:8080
 ```
 
 Login:
 
+Untuk login, dapatkan password dari menjalankan file `passwd.sh`
+
+```
+./passwd.sh
+```
+
 ```text
 Username: admin
-Password: admin123
+Password: copy dari hasil passwd.sh
 ```
 
 Langkah menjalankan DAG:
@@ -254,7 +260,7 @@ Langkah menjalankan DAG:
 4. Klik **Trigger DAG**.
 5. Pastikan task berhasil dengan status **success**.
 
-![Airflow DAG Success](docs/images/airflow_dag_success.png)
+<img width="2516" height="1406" alt="image" src="https://github.com/user-attachments/assets/90022f46-a4f2-4074-a434-6c4af7920f15" />
 
 ---
 
@@ -273,7 +279,6 @@ Query validasi:
 
 ```sql
 SELECT
-    COUNT(*) AS total_items,
     COUNT(DISTINCT order_id) AS total_orders
 FROM orders;
 ```
@@ -281,21 +286,10 @@ FROM orders;
 Hasil validasi setelah pipeline berhasil dijalankan:
 
 ```text
-total_items  = 959
 total_orders = 100
 ```
 
-Interpretasi:
-
-| Metric | Meaning |
-|---|---|
-| Total Orders | Jumlah order unik |
-| Total Items | Jumlah seluruh produk dalam order |
-| Average Items per Order | Rata-rata jumlah produk dalam satu order |
-
-Karena data sudah di-flatten, `COUNT(*)` tidak sama dengan jumlah order. `COUNT(*)` merepresentasikan jumlah item, sedangkan jumlah order dihitung menggunakan `COUNT(DISTINCT order_id)`.
-
-![ClickHouse Count](docs/images/clickhouse_count.png)
+<img width="1235" height="516" alt="image" src="https://github.com/user-attachments/assets/27589043-1877-4c06-9413-fa5e10531ea8" />
 
 ---
 
@@ -317,8 +311,6 @@ Konfigurasi koneksi ClickHouse:
 | Database | mci_orders |
 | Username | admin |
 | Password | admin123 |
-
-Catatan: host yang digunakan adalah `clickhouse`, bukan `localhost`, karena Metabase dan ClickHouse berjalan dalam Docker network yang sama.
 
 ![Metabase Connection](docs/images/metabase_connection.png)
 
@@ -544,8 +536,6 @@ WHERE days_since_prior_order IS NOT NULL;
 
 Metrik ini menunjukkan rata-rata jeda hari sejak order sebelumnya.
 
-![Metabase Question](docs/images/metabase_question.png)
-
 ---
 
 ## 11. Dashboard Design
@@ -553,7 +543,7 @@ Metrik ini menunjukkan rata-rata jeda hari sejak order sebelumnya.
 Dashboard yang dibuat bernama:
 
 ```text
-Instacart Order Behavior Analytics
+Order analitycs
 ```
 
 Dashboard disusun agar tidak hanya menampilkan data mentah, tetapi juga memberikan insight bisnis terkait perilaku order, performa produk, kontribusi department, waktu pembelian, dan reorder behavior.
